@@ -1,0 +1,43 @@
+{
+	"Expenses": {
+		"Mortgage": {
+			"Amount": 1700,
+			"Frequency": "M",
+			"Start": "2020-04-01",
+			"End": "2999-06-01"
+		},
+		"Electric": {
+			"Amount": 130,
+			"Frequency": "M",
+			"Start": "2020-04-25",
+			"End": "2999-01-01"
+		},
+		"Utilities": {
+			"Amount": 110,
+			"Frequency": "M",
+			"Start": "2020-04-25",
+			"End": "2999-01-01"
+		},
+		"Internet": {
+			"Amount": 100,
+			"Frequency": "M",
+			"Start": "2020-05-01",
+			"End": "2999-01-01"
+		},
+		"Car": {
+			"Amount": 600,
+			"Frequency": "M",
+			"Start": "2020-05-01",
+			"End": "2999-01-01"
+		},
+		"CarIns": {
+			"Amount": 110,
+			"Frequency": "M",
+			"Start": "2019-12-26",
+			"End": "2999-01-01"
+		}
+	},
+	"CurrentCash": 2000,
+	"PayFrequency": "B",
+	"LastPayDate": "2020-04-03"
+}
