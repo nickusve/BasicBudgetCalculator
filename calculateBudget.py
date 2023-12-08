@@ -27,7 +27,7 @@ def main():
 
     print ("Putting aside ${} each paycheck will be financially stable".format(ceil(budget)))
  
-def isStable(financeData, budget):
+def isStable(financeData, budget, verbose=False):
 
     # Parse the expenses from the JSON file
     expenses = {}
@@ -66,6 +66,8 @@ def isStable(financeData, budget):
             if isEffectiveToday(dateitr, expenses[itr]["effectiveDay"], 
                                 expenses[itr]["lastDay"], expenses[itr]["Frequency"]):
                 currentCash -= expenses[itr]["Amount"]
+                if verbose:
+                    print(f"paid {expenses[itr]['Amount']: 5} on {dateitr} remaining {currentCash}")
                 if currentCash < currentYearMinimum:
                     currentYearMinimum = currentCash
            
@@ -78,7 +80,7 @@ def isStable(financeData, budget):
         dateitr += datetime.timedelta(days=1)
 
         # On the first of each year put aside the lowest balance for the year
-        if dateitr.month is 1 and dateitr.day is 1:
+        if dateitr.month == 1 and dateitr.day == 1:
             yearMinimums.append(currentYearMinimum)
             currentYearMinimum = currentCash
 
@@ -107,6 +109,11 @@ def isEffectiveToday(currentDate, firstDate, lastDate, frequency):
             return True
         else:
             return False
+    elif "H" == frequency:
+        if (6 == abs(currentDate.month - firstDate.month)) and isEffectiveToday(currentDate, firstDate, lastDate, "M"):
+            return True
+        else:
+            return False
     elif "B" == frequency:
         if ((currentDate - firstDate).days % 14) == 0:
             return True
@@ -119,6 +126,13 @@ def isEffectiveToday(currentDate, firstDate, lastDate, frequency):
             return False
     elif "D" == frequency:
         return False
+    elif "T" == frequency:
+        if (currentDate.day in [8, 9, 23, 24]) and (currentDate.weekday() == 4):
+            return True
+        elif (currentDate.day in [10, 25]) and (currentDate.weekday() < 5):
+            return True
+        else:
+            return False
     else:
         raise ValueError('Unknown frequency: ' + frequency)
 
