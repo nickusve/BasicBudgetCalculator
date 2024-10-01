@@ -2,15 +2,21 @@ import datetime
 import json
 from calendar import monthrange
 from math import ceil
- 
+
 def main():
 
     # Load the budgeting data
     with open('BudgetingData.json') as json_data:
         financeData = json.load(json_data)
 
+    stable = False
+
     # Tracking variable for the budget
     budget = 0
+
+    minBalance = 0 if "MinBalance" not in financeData else financeData["MinBalance"]
+    makeCsv = False if "MakeCsv" not in financeData else financeData["MakeCsv"]
+    verbose = False if "VerboseOutput" not in financeData else financeData["VerboseOutput"]
 
     # For loop for the various adjustment factors used to determine a stable budget
     for adjustmentFactor in [100, -50, 10, -1, 0.1, -0.05, 0.01]:
@@ -20,14 +26,20 @@ def main():
         #
         # The idea is to over/undershoot until an exact stable budget is hit
         while True:
-            if isStable(financeData, budget) == (adjustmentFactor > 0):
+            if isStable(financeData, budget, minBalance, verbose=verbose) == (adjustmentFactor > 0):
+                stable = True
                 break
             else:
                 budget += adjustmentFactor
-
-    print ("Putting aside ${} each paycheck will be financially stable".format(ceil(budget)))
+    if not stable:
+        print("It is not possible to be stable with the current parameters, try adding more money to starting cash")
+    else:
+        if(makeCsv):
+            with open("results.csv", "w") as csvResult:
+                isStable(financeData, budget, minBalance, csvFile=csvResult, verbose=verbose)
+        print ("Putting aside ${} each paycheck will be financially stable".format(ceil(budget)))
  
-def isStable(financeData, budget, verbose=False):
+def isStable(financeData, budget, minBalance=0, csvFile=None, verbose=False):
 
     # Parse the expenses from the JSON file
     expenses = {}
@@ -58,10 +70,14 @@ def isStable(financeData, budget, verbose=False):
     yearMinimums = []
     currentYearMinimum = startingCash
 
+    if csvFile:
+        csvFile.write("date,balance\n")
+
     # Iterate, day by day, paying all expenses and putting aside money as is required
     # on a day-by-day basis.
     while dateitr.year < endYear:
 
+        changed=False
         for itr in expenses:
             if isEffectiveToday(dateitr, expenses[itr]["effectiveDay"], 
                                 expenses[itr]["lastDay"], expenses[itr]["Frequency"]):
@@ -70,8 +86,11 @@ def isStable(financeData, budget, verbose=False):
                     print(f"paid {expenses[itr]['Amount']: 5} on {dateitr} remaining {currentCash}")
                 if currentCash < currentYearMinimum:
                     currentYearMinimum = currentCash
+                changed=True
            
-        if currentCash < 0:
+        if csvFile and changed:
+            csvFile.write(f"{dateitr},{currentCash}\n")
+        if currentCash < minBalance:
                 return False
 
         if isEffectiveToday(dateitr, payDay, endPay, payFrequency):
@@ -93,7 +112,7 @@ def isStable(financeData, budget, verbose=False):
 
 def isEffectiveToday(currentDate, firstDate, lastDate, frequency):
 
-    if currentDate <= firstDate or currentDate > lastDate:
+    if currentDate < firstDate or currentDate > lastDate:
         return False
 
     if "Y" == frequency:
@@ -110,7 +129,8 @@ def isEffectiveToday(currentDate, firstDate, lastDate, frequency):
         else:
             return False
     elif "H" == frequency:
-        if (6 == abs(currentDate.month - firstDate.month)) and isEffectiveToday(currentDate, firstDate, lastDate, "M"):
+        monthDelta = abs(currentDate.month - firstDate.month)
+        if (monthDelta in [0,6] and isEffectiveToday(currentDate, firstDate, lastDate, "M")):
             return True
         else:
             return False
