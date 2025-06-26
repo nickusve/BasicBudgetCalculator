@@ -115,11 +115,13 @@ def isEffectiveToday(currentDate, firstDate, lastDate, frequency):
     if currentDate < firstDate or currentDate > lastDate:
         return False
 
+    # Yearly
     if "Y" == frequency:
         if currentDate.month == firstDate.month and isEffectiveToday(currentDate, firstDate, lastDate, "M"):
             return True
         else:
             return False
+    # Monthly
     elif "M" == frequency:
         if currentDate.day == firstDate.day:
             return True
@@ -128,24 +130,29 @@ def isEffectiveToday(currentDate, firstDate, lastDate, frequency):
             return True
         else:
             return False
+    # Biannual
     elif "H" == frequency:
         monthDelta = abs(currentDate.month - firstDate.month)
         if (monthDelta in [0,6] and isEffectiveToday(currentDate, firstDate, lastDate, "M")):
             return True
         else:
             return False
+    # Biweekly
     elif "B" == frequency:
         if ((currentDate - firstDate).days % 14) == 0:
             return True
         else:
             return False
+    # Weekly
     elif "W" == frequency:
         if ((currentDate - firstDate).days % 7) == 0:
             return True
         else:
             return False
+    # Daily
     elif "D" == frequency:
-        return False
+        return True
+    # Special
     elif "T" == frequency:
         if (currentDate.day in [8, 9, 23, 24]) and (currentDate.weekday() == 4):
             return True
